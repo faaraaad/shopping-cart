@@ -38,6 +38,8 @@ Authorization: Bearer <your_token_here>
 ```
 
 ## Endpoints
+Use Postman or Swagger Doc of the APIs:
+
 
 The following endpoints are available in this API:
 
