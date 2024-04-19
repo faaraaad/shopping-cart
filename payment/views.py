@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from .serializers import CartItemSerializer, ProductSerializer
 from rest_framework.response import Response
 from django.db.models import F
-from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_201_CREATED
 from rest_framework.generics import ListAPIView
 
 
@@ -19,6 +19,7 @@ class CartItemViewSet(GenericViewSet):
     def list(self, request):
         """
         List all items in the shopping cart
+        Require authenticated user to list its shopping cart products
         """
         cart_item = CartItem.objects.filter(cart__user=request.user)
         data = CartItemSerializer(instance=cart_item, many=True).data
@@ -39,7 +40,7 @@ class CartItemViewSet(GenericViewSet):
             shopping_cart.products.add(product)
             cart_item = CartItem.objects.filter(cart=shopping_cart)
         sz_data = CartItemSerializer(instance=cart_item, many=True).data
-        return Response(sz_data, HTTP_200_OK)
+        return Response(sz_data, HTTP_201_CREATED)
 
     @action(url_path=r"remove/(?P<product_id>\d+)", detail=False, methods=["post"])
     def remove(self, request, product_id, *args, **kwargs):

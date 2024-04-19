@@ -1,9 +1,8 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
-from unittest.mock import patch, MagicMock
 
 from django.urls import reverse
-
+from rest_framework.status import HTTP_204_NO_CONTENT
 from payment.models import Product
 
 
@@ -18,7 +17,7 @@ class TestShoppingCartUseCases(TestCase):
                 "category": "men's clothing",
                 "image": "http://localhost/https%3A/fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg",
                 "rating": "3.90",
-                "raters": 120
+                "raters": 120,
             },
             {
                 "id": 2,
@@ -28,7 +27,7 @@ class TestShoppingCartUseCases(TestCase):
                 "category": "men's clothing",
                 "image": "http://localhost/https%3A/fakestoreapi.com/img/71-3HjGNDUL._AC_SY879._SX._UX._SY._UY_.jpg",
                 "rating": "4.10",
-                "raters": 259
+                "raters": 259,
             },
             {
                 "id": 3,
@@ -38,8 +37,9 @@ class TestShoppingCartUseCases(TestCase):
                 "category": "men's clothing",
                 "image": "http://localhost/https%3A/fakestoreapi.com/img/71li-ujtlUL._AC_UX679_.jpg",
                 "rating": "4.70",
-                "raters": 500
-            }]
+                "raters": 500,
+            },
+        ]
 
         for product in products:
             Product.objects.create(
@@ -49,26 +49,32 @@ class TestShoppingCartUseCases(TestCase):
                 category=product.get("category"),
                 image=product.get("image"),
                 rating=product.get("rating"),
-                raters=product.get("raters")
+                raters=product.get("raters"),
             )
 
-        user = User.objects.create_user(username='user', email='user@foo.com', password='pass')
+        user = User.objects.create_user(
+            username="user", email="user@foo.com", password="pass"
+        )
         user.is_active = True
         user.save()
 
-    def test_empty_list_products(self):
+    def get_access_token(self, username, password):
         url_token = reverse("token-obtain")
-        resp = self.client.post(url_token, data={
-            "username": "user",
-            "password": "pass"
-        })
+        resp = self.client.post(
+            url_token, data={"username": username, "password": password}
+        )
         access_token = resp.json().get("access")
         self.assertEqual(resp.status_code, 200)
 
+        return access_token
+
+    def test_empty_list_products(self):
         list_url = reverse("shopping-cart-list")
-        list_shopping_cart = self.client.get(list_url,
-                                             headers={f"Authorization": f"Bearer {access_token}"}
-                                             ).json()
+
+        access_token = self.get_access_token("user", "pass")
+        list_shopping_cart = self.client.get(
+            list_url, headers={f"Authorization": f"Bearer {access_token}"}
+        ).json()
         self.assertEqual(len(list_shopping_cart), 0)
 
     def test_modify_list_products(self):
@@ -77,29 +83,38 @@ class TestShoppingCartUseCases(TestCase):
         after that we remove 5 of them
         finally, the quantity of the product in shopping cart should 5
         """
-        url_token = reverse("token-obtain")
-        resp = self.client.post(url_token, data={
-            "username": "user",
-            "password": "pass"
-        })
-        access_token = resp.json().get("access")
+        access_token = self.get_access_token("user", "pass")
 
         product_id = Product.objects.first().id
         add_url = reverse("shopping-cart-add", kwargs={"product_id": product_id})
         for i in range(10):
-            self.client.post(add_url,
-                             headers={f"Authorization": f"Bearer {access_token}"},
-                             )
+            self.client.post(
+                add_url,
+                headers={f"Authorization": f"Bearer {access_token}"},
+            )
 
         remove_url = reverse("shopping-cart-remove", kwargs={"product_id": product_id})
         for i in range(5):
-            self.client.post(remove_url,
-                             headers={f"Authorization": f"Bearer {access_token}"},
-                             )
+            self.client.post(
+                remove_url,
+                headers={f"Authorization": f"Bearer {access_token}"},
+            )
 
         list_url = reverse("shopping-cart-list")
-        list_shopping_cart = self.client.get(list_url,
-                                             headers={f"Authorization": f"Bearer {access_token}"}
-                                             )
+        list_shopping_cart = self.client.get(
+            list_url, headers={f"Authorization": f"Bearer {access_token}"}
+        )
 
-        self.assertEqual(list_shopping_cart.json()[0].get('quantity'), 5)
+        self.assertEqual(list_shopping_cart.json()[0].get("quantity"), 5)
+
+    def test_error_for_remove_empty_shopping_cart(self):
+        """
+        If shopping cart doesn't have a product it should return NO_CONTENT status code
+        """
+        access_token = self.get_access_token("user", "pass")
+        product_id = Product.objects.first().id
+
+        remove_url = reverse("shopping-cart-remove", kwargs={"product_id": product_id})
+        resp = self.client.post(remove_url, headers={f"Authorization": f"Bearer {access_token}"})
+
+        self.assertEqual(resp.status_code, HTTP_204_NO_CONTENT)

@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -81,7 +82,7 @@ DATABASES = {
         "NAME": os.environ.get("POSTGRES_DB", "postgres"),
         "USER": os.environ.get("POSTGRES_USER", "postgres"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "postgres"),
-        "HOST": os.environ.get("POSTGRES_HOST", "192.168.128.2"),
+        "HOST": os.environ.get("POSTGRES_HOST", "172.19.0.2"),
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
