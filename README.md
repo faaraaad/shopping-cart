@@ -64,21 +64,32 @@ Make sure you have [Docker](https://www.docker.com/) and [Docker Compose](https:
    cd shopping-cart
    ```
 
-2. Build and launch the containers:
+2. Set up the production environment file:
+   Copy the provided `.env.prod.example` template to `.env.prod` and customize your production secrets, passwords, and admin credentials:
+   ```bash
+   cp .env.prod.example .env.prod
+   ```
+
+3. Build and launch the containers:
    ```bash
    docker-compose build && docker-compose up
    ```
 
-3. Access the services:
+4. Access the services:
    - **Main Web API**: `http://localhost/`
    - **Interactive Swagger Docs**: `http://localhost/swagger/`
    - **ReDoc Docs**: `http://localhost/redoc/`
    - **Django Admin Panel**: `http://localhost/admin/`
 
 > [!IMPORTANT]
-> **Default Admin Account**  
-> Username: `superuser`  
-> Password: `GreatPassword`
+> **Default Development Admin Account**  
+> For **local development and testing purposes only**, the database seeder automatically initializes a superuser with the following fallback credentials:
+> - Username: `superuser`  
+> - Password: `GreatPassword`
+>
+> > [!WARNING]
+> > **Production Security**  
+> > Never deploy with these default credentials. In production, configure secure values by overriding the `DJANGO_SUPERUSER_USERNAME` and `DJANGO_SUPERUSER_PASSWORD` environment variables in your `.env.prod` file.
 
 ---
 

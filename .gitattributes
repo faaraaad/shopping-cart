@@ -1,0 +1,2 @@
+# Treat staticfiles directory as documentation for GitHub Linguist (excludes it from language stats)
+staticfiles/** linguist-documentation
