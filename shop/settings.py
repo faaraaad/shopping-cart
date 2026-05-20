@@ -16,12 +16,22 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-SECRET_KEY = "django-insecure-+ceeyeq^#34=5eam8z8g-dln_&z8d^$z1nx%d$cv%s24o7=r*h"
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.environ.get("DEBUG", "1") == "1"
 
-SECRET_KEY = os.environ.get("SECRET_KEY", SECRET_KEY)
-
-DEBUG = bool(os.environ.get("DEBUG", default=1))
+if not DEBUG:
+    # In production, require a strong, non-default SECRET_KEY
+    if not SECRET_KEY or SECRET_KEY.strip() in ("", "foo", "change_me_to_a_secure_random_key_in_production"):
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured(
+            "SECRET_KEY must be set to a secure, unique value in the environment when DEBUG is False."
+        )
+else:
+    # Use a default development key if not specified in environment
+    SECRET_KEY = SECRET_KEY or "django-insecure-+ceeyeq^#34=5eam8z8g-dln_&z8d^$z1nx%d$cv%s24o7=r*h"
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(" ")
 

@@ -1,3 +1,4 @@
+import os
 import requests
 from payment.models import Product
 from django.contrib.auth.models import User
@@ -69,6 +70,15 @@ for product in products_data:
         raters=count,
     )
 
-if not User.objects.filter(username="superuser").exists():
-    User.objects.create_superuser("superuser", password="GreatPassword")
-    print("Created superuser successfully.")
+superuser_username = os.environ.get("DJANGO_SUPERUSER_USERNAME", "superuser")
+superuser_password = os.environ.get("DJANGO_SUPERUSER_PASSWORD", "GreatPassword")
+
+if not User.objects.filter(username=superuser_username).exists():
+    from django.conf import settings
+    # Warn if default credentials are used in a production environment
+    if not settings.DEBUG and (superuser_username == "superuser" or superuser_password == "GreatPassword"):
+        print("WARNING: Creating superuser with default credentials ('superuser' / 'GreatPassword') in production! "
+              "Please override DJANGO_SUPERUSER_USERNAME and DJANGO_SUPERUSER_PASSWORD env vars for safety.")
+    
+    User.objects.create_superuser(superuser_username, password=superuser_password)
+    print(f"Created superuser '{superuser_username}' successfully.")
